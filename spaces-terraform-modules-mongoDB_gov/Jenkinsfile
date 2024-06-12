@@ -1,0 +1,53 @@
+pipeline {
+    agent  any
+
+    environment {
+        // Define the path to the tools directory
+        TOOLS_DIR = "${WORKSPACE}/tools"
+    }
+
+    
+
+    stages {
+        stage('Run TfLint') {
+            steps {
+                script {
+                    dir("${workspace}") {
+                        sh '''
+                            tflint --config .tflint.hcl
+                        '''
+                    }
+                }
+            }
+        }
+//
+        stage('Run TfSec Scan') {
+            steps {
+                script {
+                   dir("${workspace}") {
+                        sh '''
+                            tfsec -f junit,default --out tfsec --config-file tfsec.yaml --no-color --include-passed
+                        '''
+                    } 
+                }
+            }
+        }
+
+        stage('git release') {
+              when {
+                expression{
+                     env.BRANCH_NAME =='main'
+                }
+             }   
+            steps {
+                script {
+                    dir("${workspace}") {
+                        sh '''
+                            echo release
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

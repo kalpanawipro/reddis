@@ -1,0 +1,22 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+volumeString=""
+vols=$(lsblk --output NAME -l)
+for vol in $vols; do
+	if [[ $vol == nvme* ]]; then
+		volumeString="$volumeString /dev/$vol "
+	fi
+done
+echo $volumeString
+vgcreate lvm $volumeString
+lvcreate -n lvm -l 100%FREE lvm
+mkfs -t xfs /dev/lvm/lvm
+mkdir -p /eksmounts
+mount -o rw,pquota /dev/lvm/lvm /eksmounts
+
+--==MYBOUNDARY==--

@@ -1,0 +1,21 @@
+# Node Template
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  instanceProfile: "${karpenter_node_instance_profile}"
+  subnetSelector:
+    karpenter.sh/discovery: "${karpenter_subnet_tag}"
+  securityGroupSelector:
+    aws:eks:cluster-name: "${cluster_name}"
+  tags:
+    karpenter.sh/discovery: "${karpenter_subnet_tag}"
+    IntentLabel: "apps"
+  userData: |
+    ${karpenter_userdata}
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: ${karpenter_node_root_vol_size}
+        volumeType: gp3
